@@ -28,32 +28,52 @@ class Metaball {
 
     draw() {
         noStroke();
-        fill(96, 165, 250, 180);
+        fill(96, 165, 250, 150);
         circle(this.x, this.y, this.radius * 2);
     }
 }
 
 let metaballs = [];
+let gridSize = 20;
+let cols = 0;
+let rows = 0;
+let field = [];
 
 function setup() {
     const canvas = createCanvas(900, 600);
     canvas.parent("canvas-container");
 
+    initializeField();
     createInitialMetaballs();
 }
 
 function draw() {
     background(15, 23, 42);
 
-    drawGrid();
-
     for (const metaball of metaballs) {
         metaball.update();
         metaball.bounce(width, height);
+    }
+
+    computeField();
+    drawGrid();
+    drawFieldPoints();
+
+    for (const metaball of metaballs) {
         metaball.draw();
     }
 
     drawSceneLabel();
+}
+
+function initializeField() {
+    cols = floor(width / gridSize) + 1;
+    rows = floor(height / gridSize) + 1;
+    field = new Array(cols);
+
+    for (let i = 0; i < cols; i++) {
+        field[i] = new Array(rows).fill(0);
+    }
 }
 
 function createInitialMetaballs() {
@@ -65,22 +85,62 @@ function createInitialMetaballs() {
         const y = random(radius, height - radius);
         const vx = random(-2.2, 2.2);
         const vy = random(-2.2, 2.2);
-        const strength = random(8000, 16000);
+        const strength = random(9000, 17000);
 
         metaballs.push(new Metaball(x, y, vx, vy, strength, radius));
     }
+}
+
+function computeField() {
+    for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+            const x = i * gridSize;
+            const y = j * gridSize;
+            field[i][j] = fieldValueAt(x, y);
+        }
+    }
+}
+
+function fieldValueAt(x, y) {
+    let sum = 0;
+    const epsilon = 0.0001;
+
+    for (const metaball of metaballs) {
+        const dx = x - metaball.x;
+        const dy = y - metaball.y;
+        const distanceSquared = dx * dx + dy * dy;
+        sum += metaball.strength / (distanceSquared + epsilon);
+    }
+
+    return sum;
 }
 
 function drawGrid() {
     stroke(51, 65, 85);
     strokeWeight(1);
 
-    for (let x = 0; x <= width; x += 30) {
+    for (let x = 0; x <= width; x += gridSize) {
         line(x, 0, x, height);
     }
 
-    for (let y = 0; y <= height; y += 30) {
+    for (let y = 0; y <= height; y += gridSize) {
         line(0, y, width, y);
+    }
+}
+
+function drawFieldPoints() {
+    noStroke();
+
+    for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+            const x = i * gridSize;
+            const y = j * gridSize;
+            const value = field[i][j];
+
+            const intensity = constrain(map(value, 0, 8, 0, 255), 0, 255);
+            fill(intensity, intensity, intensity, 220);
+            circle(x, y, 6);
+        }
     }
 }
 
@@ -89,5 +149,5 @@ function drawSceneLabel() {
     fill(226, 232, 240);
     textAlign(LEFT, TOP);
     textSize(18);
-    text("Etap 2: animowane metaballe", 20, 20);
+    text("Etap 3: pole skalarne na siatce", 20, 20);
 }
