@@ -42,7 +42,7 @@ function setupControls() {
     });
 
     ballSlider.addEventListener("input", () => {
-        createInitialMetaballs(Number(ballSlider.value));
+        setMetaballCount(Number(ballSlider.value));
     });
 
     speedSlider.addEventListener("input", () => {
@@ -73,10 +73,12 @@ function setupControls() {
 
     startButton.addEventListener("click", () => {
         isAnimating = true;
+        updateStatusPanel();
     });
 
     stopButton.addEventListener("click", () => {
         isAnimating = false;
+        updateStatusPanel();
     });
 
     resetButton.addEventListener("click", resetApplicationState);
@@ -119,7 +121,8 @@ function resetApplicationState() {
     initializeField();
 
     applyDefaultView();
-    updateResponsiveCanvasSize();
+    syncBallControls();
+    updateStatusPanel();
 }
 
 function applyDefaultView() {
@@ -137,6 +140,14 @@ function applyDefaultView() {
 function syncBallControls() {
     ballSlider.value = metaballs.length;
     ballValueLabel.textContent = String(metaballs.length);
+
+    if (addButton) {
+        addButton.disabled = metaballs.length >= APP_CONFIG.maxMetaballs;
+    }
+
+    if (removeButton) {
+        removeButton.disabled = metaballs.length <= 1;
+    }
 }
 
 function updateStatusPanel() {
@@ -148,4 +159,16 @@ function updateStatusPanel() {
     statusStrength.textContent = strengthMultiplier.toFixed(1);
 
     ballValueLabel.textContent = String(metaballs.length);
+
+    if (startButton) {
+        startButton.disabled = isAnimating;
+        startButton.classList.toggle("button-active", isAnimating);
+    }
+
+    if (stopButton) {
+        stopButton.disabled = !isAnimating;
+        stopButton.classList.toggle("button-active", !isAnimating);
+    }
+
+    syncBallControls();
 }

@@ -441,3 +441,22 @@ button:hover {
         font-size: 13px;
     }
 }
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+    transform: none;
+    box-shadow: none;
+}
+
+button:disabled:hover {
+    transform: none;
+    opacity: 0.48;
+    box-shadow: none;
+}
+
+.button-active {
+    box-shadow:
+        0 0 0 1px rgba(147, 197, 253, 0.45),
+        0 0 20px rgba(59, 130, 246, 0.22);
+}

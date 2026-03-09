@@ -103,12 +103,46 @@ function createInitialMetaballs(count) {
     syncBallControls();
 }
 
+function setMetaballCount(targetCount) {
+    const safeTarget = constrain(
+        Number(targetCount),
+        1,
+        APP_CONFIG.maxMetaballs
+    );
+
+    while (metaballs.length < safeTarget) {
+        metaballs.push(createRandomMetaball());
+    }
+
+    while (metaballs.length > safeTarget) {
+        metaballs.pop();
+    }
+
+    syncBallControls();
+}
+
 function createRandomMetaball(x = null, y = null) {
     const radius = random(18, 42);
-    const safeX = x ?? random(radius, width - radius);
-    const safeY = y ?? random(radius, height - radius);
-    const vx = random(-2.2, 2.2);
-    const vy = random(-2.2, 2.2);
+
+    const safeX = x === null
+        ? random(radius, width - radius)
+        : constrain(x, radius, width - radius);
+
+    const safeY = y === null
+        ? random(radius, height - radius)
+        : constrain(y, radius, height - radius);
+
+    let vx = random(-2.2, 2.2);
+    let vy = random(-2.2, 2.2);
+
+    if (Math.abs(vx) < 0.45) {
+        vx = 0.45 * (random() < 0.5 ? -1 : 1);
+    }
+
+    if (Math.abs(vy) < 0.45) {
+        vy = 0.45 * (random() < 0.5 ? -1 : 1);
+    }
+
     const baseStrength = random(0.9, 1.5);
 
     return new Metaball(safeX, safeY, vx, vy, baseStrength, radius);
