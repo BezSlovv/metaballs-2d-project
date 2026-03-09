@@ -268,3 +268,28 @@ button {
 #canvas-container {
     touch-action: manipulation;
 }
+
+html,
+body {
+    overflow-x: hidden;
+    touch-action: pan-y;
+}
+
+.sidebar,
+.main-panel,
+.canvas-card,
+.card {
+    touch-action: auto;
+}
+
+input,
+button,
+label {
+    touch-action: manipulation;
+}
+
+#canvas-stage,
+#canvas-container,
+canvas {
+    touch-action: pan-y pinch-zoom;
+}

@@ -45,6 +45,7 @@ let statusSpeed;
 let statusStrength;
 
 let canvasInstance;
+let resizeObserver;
 
 function setup() {
     pixelDensity(1);
@@ -52,12 +53,15 @@ function setup() {
     canvasInstance = createCanvas(APP_CONFIG.canvasWidth, APP_CONFIG.canvasHeight);
     canvasInstance.parent("canvas-container");
 
-    setupCanvasInputHandlers();
+    setupCanvasPointerHandlers();
     setupControls();
     initializeField();
     createInitialMetaballs(APP_CONFIG.defaultBallCount);
     applyDefaultView();
+    updateResponsiveCanvasSize();
     updateStatusPanel();
+
+    setupCanvasResizeObserver();
 }
 
 function draw() {
@@ -123,8 +127,51 @@ function addMetaball(x = null, y = null) {
     syncBallControls();
 }
 
-function setupCanvasInputHandlers() {
+function updateResponsiveCanvasSize() {
+    const stage = document.getElementById("canvas-stage");
+    if (!stage || !canvasInstance) {
+        return;
+    }
+
+    const stageWidth = stage.clientWidth;
+    const viewportWidth = window.innerWidth;
+    const margin = viewportWidth <= 640
+        ? APP_CONFIG.mobileCanvasMargin
+        : APP_CONFIG.minCanvasMargin;
+
+    const maxAvailableWidth = Math.max(280, stageWidth - margin);
+    const scale = Math.min(1, maxAvailableWidth / APP_CONFIG.canvasWidth);
+
+    const displayWidth = Math.round(APP_CONFIG.canvasWidth * scale);
+    const displayHeight = Math.round(APP_CONFIG.canvasHeight * scale);
+
+    canvasInstance.style("width", `${displayWidth}px`);
+    canvasInstance.style("height", `${displayHeight}px`);
+}
+
+function setupCanvasResizeObserver() {
+    const stage = document.getElementById("canvas-stage");
+    if (!stage) {
+        return;
+    }
+
+    resizeObserver = new ResizeObserver(() => {
+        updateResponsiveCanvasSize();
+    });
+
+    resizeObserver.observe(stage);
+}
+
+function windowResized() {
+    updateResponsiveCanvasSize();
+}
+
+function setupCanvasPointerHandlers() {
     const canvasElement = canvasInstance.elt;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
 
     canvasElement.addEventListener("click", (event) => {
         addMetaballFromClientPosition(event.clientX, event.clientY);
@@ -134,6 +181,43 @@ function setupCanvasInputHandlers() {
         "touchstart",
         (event) => {
             const touch = event.changedTouches?.[0] ?? event.touches?.[0];
+            if (!touch) {
+                return;
+            }
+
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchMoved = false;
+        },
+        { passive: true }
+    );
+
+    canvasElement.addEventListener(
+        "touchmove",
+        (event) => {
+            const touch = event.changedTouches?.[0] ?? event.touches?.[0];
+            if (!touch) {
+                return;
+            }
+
+            const dx = Math.abs(touch.clientX - touchStartX);
+            const dy = Math.abs(touch.clientY - touchStartY);
+
+            if (dx > 10 || dy > 10) {
+                touchMoved = true;
+            }
+        },
+        { passive: true }
+    );
+
+    canvasElement.addEventListener(
+        "touchend",
+        (event) => {
+            if (touchMoved) {
+                return;
+            }
+
+            const touch = event.changedTouches?.[0];
             if (!touch) {
                 return;
             }
