@@ -52,6 +52,7 @@ function setup() {
     canvasInstance = createCanvas(APP_CONFIG.canvasWidth, APP_CONFIG.canvasHeight);
     canvasInstance.parent("canvas-container");
 
+    setupCanvasInputHandlers();
     setupControls();
     initializeField();
     createInitialMetaballs(APP_CONFIG.defaultBallCount);
@@ -122,26 +123,25 @@ function addMetaball(x = null, y = null) {
     syncBallControls();
 }
 
-function mousePressed(event) {
-    const pointerX = event?.clientX;
-    const pointerY = event?.clientY;
+function setupCanvasInputHandlers() {
+    const canvasElement = canvasInstance.elt;
 
-    if (typeof pointerX !== "number" || typeof pointerY !== "number") {
-        return;
-    }
+    canvasElement.addEventListener("click", (event) => {
+        addMetaballFromClientPosition(event.clientX, event.clientY);
+    });
 
-    addMetaballFromClientPosition(pointerX, pointerY);
-}
+    canvasElement.addEventListener(
+        "touchstart",
+        (event) => {
+            const touch = event.changedTouches?.[0] ?? event.touches?.[0];
+            if (!touch) {
+                return;
+            }
 
-function touchStarted(event) {
-    const touch = event?.changedTouches?.[0] ?? event?.touches?.[0];
-
-    if (!touch) {
-        return false;
-    }
-
-    addMetaballFromClientPosition(touch.clientX, touch.clientY);
-    return false;
+            addMetaballFromClientPosition(touch.clientX, touch.clientY);
+        },
+        { passive: true }
+    );
 }
 
 function addMetaballFromClientPosition(clientX, clientY) {

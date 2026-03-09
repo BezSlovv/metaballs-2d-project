@@ -259,3 +259,12 @@ button:hover {
         font-size: 13px;
     }
 }
+
+input,
+button {
+    touch-action: manipulation;
+}
+
+#canvas-container {
+    touch-action: manipulation;
+}
