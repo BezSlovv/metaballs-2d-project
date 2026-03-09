@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -13,12 +13,16 @@
     <div class="app-shell">
         <aside class="sidebar">
             <div class="brand">
+                <div class="brand-top">
+                    <img src="assets/university-logo.svg" alt="University logo" class="university-logo">
+                </div>
+
                 <h1>Metaballs 2D</h1>
-                <p>Marching Squares · pole skalarne · animacja</p>
+                <p>Marching Squares · scalar field · animation</p>
             </div>
 
             <section class="card">
-                <h2>Parametry</h2>
+                <h2>Parameters</h2>
 
                 <div class="control-group">
                     <label for="threshold-slider">Threshold <span id="threshold-value">0.5</span></label>
@@ -47,31 +51,31 @@
             </section>
 
             <section class="card">
-                <h2>Widok</h2>
+                <h2>View</h2>
 
                 <label class="checkbox-row">
                     <input id="show-grid" type="checkbox">
-                    <span>Siatka</span>
+                    <span>Grid</span>
                 </label>
 
                 <label class="checkbox-row">
                     <input id="show-field-points" type="checkbox">
-                    <span>Punkty pola</span>
+                    <span>Field points</span>
                 </label>
 
                 <label class="checkbox-row">
                     <input id="show-scalar-background" type="checkbox" checked>
-                    <span>Tło pola</span>
+                    <span>Scalar background</span>
                 </label>
 
                 <label class="checkbox-row">
                     <input id="show-metaballs" type="checkbox" checked>
-                    <span>Źródła</span>
+                    <span>Sources</span>
                 </label>
             </section>
 
             <section class="card">
-                <h2>Sterowanie</h2>
+                <h2>Controls</h2>
                 <div class="button-grid">
                     <button id="start-button" type="button">Start</button>
                     <button id="stop-button" type="button">Stop</button>
@@ -97,7 +101,15 @@
 
         <main class="main-panel">
             <div class="canvas-card">
-                <div id="canvas-container"></div>
+                <div class="canvas-header">
+                    <div>
+                        <h2>Interactive visualization</h2>
+                    </div>
+                </div>
+
+                <div id="canvas-stage">
+                    <div id="canvas-container"></div>
+                </div>
             </div>
         </main>
     </div>

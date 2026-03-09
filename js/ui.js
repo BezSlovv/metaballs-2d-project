@@ -119,6 +119,7 @@ function resetApplicationState() {
     initializeField();
 
     applyDefaultView();
+    updateResponsiveCanvasSize();
 }
 
 function applyDefaultView() {

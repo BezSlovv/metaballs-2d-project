@@ -7,5 +7,7 @@ const APP_CONFIG = {
     defaultSpeedMultiplier: 1.0,
     defaultStrengthMultiplier: 1.5,
     maxMetaballs: 20,
-    epsilon: 0.0001
+    epsilon: 0.0001,
+    minCanvasMargin: 24,
+    mobileCanvasMargin: 12
 };

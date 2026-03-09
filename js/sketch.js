@@ -44,15 +44,23 @@ let statusMetaballs;
 let statusSpeed;
 let statusStrength;
 
+let canvasInstance;
+let resizeObserver;
+
 function setup() {
-    const canvas = createCanvas(APP_CONFIG.canvasWidth, APP_CONFIG.canvasHeight);
-    canvas.parent("canvas-container");
+    pixelDensity(1);
+
+    canvasInstance = createCanvas(APP_CONFIG.canvasWidth, APP_CONFIG.canvasHeight);
+    canvasInstance.parent("canvas-container");
 
     setupControls();
     initializeField();
     createInitialMetaballs(APP_CONFIG.defaultBallCount);
     applyDefaultView();
+    updateResponsiveCanvasSize();
     updateStatusPanel();
+
+    setupCanvasResizeObserver();
 }
 
 function draw() {
@@ -118,8 +126,79 @@ function addMetaball(x = null, y = null) {
     syncBallControls();
 }
 
-function mousePressed() {
-    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
-        addMetaball(mouseX, mouseY);
+function updateResponsiveCanvasSize() {
+    const container = document.getElementById("canvas-container");
+    if (!container || !canvasInstance) {
+        return;
     }
+
+    const containerWidth = container.clientWidth;
+    const fallbackWidth = APP_CONFIG.canvasWidth;
+    const displayWidth = Math.max(280, Math.min(containerWidth || fallbackWidth, APP_CONFIG.canvasWidth));
+    const displayHeight = Math.round(displayWidth * APP_CONFIG.canvasHeight / APP_CONFIG.canvasWidth);
+
+    container.style.height = `${displayHeight}px`;
+    canvasInstance.style("width", `${displayWidth}px`);
+    canvasInstance.style("height", `${displayHeight}px`);
+}
+
+function setupCanvasResizeObserver() {
+    const container = document.getElementById("canvas-container");
+    if (!container) {
+        return;
+    }
+
+    resizeObserver = new ResizeObserver(() => {
+        updateResponsiveCanvasSize();
+    });
+
+    resizeObserver.observe(container);
+}
+
+function windowResized() {
+    updateResponsiveCanvasSize();
+}
+
+function mousePressed(event) {
+    const pointerX = event?.clientX;
+    const pointerY = event?.clientY;
+
+    if (typeof pointerX !== "number" || typeof pointerY !== "number") {
+        return;
+    }
+
+    addMetaballFromClientPosition(pointerX, pointerY);
+}
+
+function touchStarted(event) {
+    const touch = event?.changedTouches?.[0] ?? event?.touches?.[0];
+
+    if (!touch) {
+        return false;
+    }
+
+    addMetaballFromClientPosition(touch.clientX, touch.clientY);
+    return false;
+}
+
+function addMetaballFromClientPosition(clientX, clientY) {
+    if (!canvasInstance) {
+        return;
+    }
+
+    const rect = canvasInstance.elt.getBoundingClientRect();
+
+    if (
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom
+    ) {
+        return;
+    }
+
+    const localX = map(clientX, rect.left, rect.right, 0, width);
+    const localY = map(clientY, rect.top, rect.bottom, 0, height);
+
+    addMetaball(localX, localY);
 }
