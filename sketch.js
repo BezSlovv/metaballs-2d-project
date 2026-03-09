@@ -8,7 +8,11 @@ class Metaball {
         this.radius = radius;
     }
 
-    update() {
+    update(isAnimating) {
+        if (!isAnimating) {
+            return;
+        }
+
         this.x += this.vx;
         this.y += this.vy;
     }
@@ -38,34 +42,134 @@ let gridSize = 20;
 let cols = 0;
 let rows = 0;
 let field = [];
-let threshold = 2;
+let threshold = 2.0;
+
+let isAnimating = true;
+let showGrid = true;
+let showFieldPoints = true;
+let showMetaballs = true;
+
+let thresholdSlider;
+let gridSlider;
+let ballSlider;
+
+let thresholdValueLabel;
+let gridValueLabel;
+let ballValueLabel;
+
+let showGridCheckbox;
+let showFieldPointsCheckbox;
+let showMetaballsCheckbox;
+
+let startButton;
+let stopButton;
+let resetButton;
 
 function setup() {
     const canvas = createCanvas(900, 600);
     canvas.parent("canvas-container");
 
+    setupControls();
     initializeField();
-    createInitialMetaballs();
+    createInitialMetaballs(Number(ballSlider.value));
 }
 
 function draw() {
     background(15, 23, 42);
 
     for (const metaball of metaballs) {
-        metaball.update();
+        metaball.update(isAnimating);
         metaball.bounce(width, height);
     }
 
     computeField();
-    drawGrid();
-    drawFieldPoints();
+
+    if (showGrid) {
+        drawGrid();
+    }
+
+    if (showFieldPoints) {
+        drawFieldPoints();
+    }
+
     drawIsoLines();
 
-    for (const metaball of metaballs) {
-        metaball.draw();
+    if (showMetaballs) {
+        for (const metaball of metaballs) {
+            metaball.draw();
+        }
     }
 
     drawSceneLabel();
+}
+
+function setupControls() {
+    thresholdSlider = document.getElementById("threshold-slider");
+    gridSlider = document.getElementById("grid-slider");
+    ballSlider = document.getElementById("ball-slider");
+
+    thresholdValueLabel = document.getElementById("threshold-value");
+    gridValueLabel = document.getElementById("grid-value");
+    ballValueLabel = document.getElementById("ball-value");
+
+    showGridCheckbox = document.getElementById("show-grid");
+    showFieldPointsCheckbox = document.getElementById("show-field-points");
+    showMetaballsCheckbox = document.getElementById("show-metaballs");
+
+    startButton = document.getElementById("start-button");
+    stopButton = document.getElementById("stop-button");
+    resetButton = document.getElementById("reset-button");
+
+    thresholdSlider.addEventListener("input", () => {
+        threshold = Number(thresholdSlider.value);
+        thresholdValueLabel.textContent = threshold.toFixed(1);
+    });
+
+    gridSlider.addEventListener("input", () => {
+        gridSize = Number(gridSlider.value);
+        gridValueLabel.textContent = gridSize;
+        initializeField();
+    });
+
+    ballSlider.addEventListener("input", () => {
+        const ballCount = Number(ballSlider.value);
+        ballValueLabel.textContent = ballCount;
+        createInitialMetaballs(ballCount);
+    });
+
+    showGridCheckbox.addEventListener("change", () => {
+        showGrid = showGridCheckbox.checked;
+    });
+
+    showFieldPointsCheckbox.addEventListener("change", () => {
+        showFieldPoints = showFieldPointsCheckbox.checked;
+    });
+
+    showMetaballsCheckbox.addEventListener("change", () => {
+        showMetaballs = showMetaballsCheckbox.checked;
+    });
+
+    startButton.addEventListener("click", () => {
+        isAnimating = true;
+    });
+
+    stopButton.addEventListener("click", () => {
+        isAnimating = false;
+    });
+
+    resetButton.addEventListener("click", () => {
+        threshold = 2.0;
+        gridSize = 20;
+
+        thresholdSlider.value = threshold;
+        gridSlider.value = gridSize;
+        thresholdValueLabel.textContent = threshold.toFixed(1);
+        gridValueLabel.textContent = gridSize;
+
+        createInitialMetaballs(Number(ballSlider.value));
+        initializeField();
+        isAnimating = true;
+    });
 }
 
 function initializeField() {
@@ -78,10 +182,10 @@ function initializeField() {
     }
 }
 
-function createInitialMetaballs() {
+function createInitialMetaballs(count) {
     metaballs = [];
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < count; i++) {
         const radius = random(25, 45);
         const x = random(radius, width - radius);
         const y = random(radius, height - radius);
@@ -259,5 +363,5 @@ function drawSceneLabel() {
     fill(226, 232, 240);
     textAlign(LEFT, TOP);
     textSize(18);
-    text("Etap 4: Marching Squares i izolinie", 20, 20);
+    text("Etap 5: interaktywny panel sterowania", 20, 20);
 }
