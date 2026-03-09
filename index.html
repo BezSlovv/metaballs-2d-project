@@ -30,7 +30,17 @@
 
                 <div class="control-group">
                     <label for="ball-slider">Ball count: <span id="ball-value">5</span></label>
-                    <input id="ball-slider" type="range" min="1" max="10" step="1" value="5">
+                    <input id="ball-slider" type="range" min="1" max="15" step="1" value="5">
+                </div>
+
+                <div class="control-group">
+                    <label for="speed-slider">Speed multiplier: <span id="speed-value">1.0</span></label>
+                    <input id="speed-slider" type="range" min="0.2" max="3" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-group">
+                    <label for="strength-slider">Strength multiplier: <span id="strength-value">1.0</span></label>
+                    <input id="strength-slider" type="range" min="0.4" max="2.5" step="0.1" value="1.0">
                 </div>
             </section>
 
@@ -48,8 +58,18 @@
                 </label>
 
                 <label class="checkbox-row">
+                    <input id="show-scalar-background" type="checkbox" checked>
+                    <span>Pokaż tło pola skalarnego</span>
+                </label>
+
+                <label class="checkbox-row">
                     <input id="show-metaballs" type="checkbox" checked>
                     <span>Pokaż metaballe</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input id="debug-mode" type="checkbox">
+                    <span>Tryb debug</span>
                 </label>
             </section>
 
@@ -60,6 +80,28 @@
                     <button id="start-button" type="button">Start</button>
                     <button id="stop-button" type="button">Stop</button>
                     <button id="reset-button" type="button">Reset</button>
+                    <button id="randomize-button" type="button">Randomize</button>
+                    <button id="remove-button" type="button">Remove last</button>
+                </div>
+            </section>
+
+            <section class="panel-section">
+                <h2>Instrukcja</h2>
+                <div class="status-list">
+                    <p>Kliknij w canvas, aby dodać nowy metaball.</p>
+                    <p>Use Randomize, aby wylosować nowy układ źródeł pola.</p>
+                </div>
+            </section>
+
+            <section class="panel-section">
+                <h2>Status</h2>
+                <div class="status-list">
+                    <p>Animation: <span id="status-animation">running</span></p>
+                    <p>Cells: <span id="status-cells">0</span></p>
+                    <p>Threshold: <span id="status-threshold">2.0</span></p>
+                    <p>Metaballs: <span id="status-metaballs">5</span></p>
+                    <p>Speed: <span id="status-speed">1.0</span></p>
+                    <p>Strength: <span id="status-strength">1.0</span></p>
                 </div>
             </section>
         </aside>

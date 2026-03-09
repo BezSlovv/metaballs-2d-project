@@ -4,17 +4,17 @@ class Metaball {
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.strength = strength;
+        this.baseStrength = strength;
         this.radius = radius;
     }
 
-    update(isAnimating) {
+    update(isAnimating, speedMultiplier) {
         if (!isAnimating) {
             return;
         }
 
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * speedMultiplier;
+        this.y += this.vy * speedMultiplier;
     }
 
     bounce(canvasWidth, canvasHeight) {
@@ -30,6 +30,10 @@ class Metaball {
         this.y = constrain(this.y, this.radius, canvasHeight - this.radius);
     }
 
+    getStrength() {
+        return this.baseStrength * strengthMultiplier;
+    }
+
     draw() {
         noStroke();
         fill(96, 165, 250, 70);
@@ -43,27 +47,46 @@ let cols = 0;
 let rows = 0;
 let field = [];
 let threshold = 2.0;
+let speedMultiplier = 1.0;
+let strengthMultiplier = 1.0;
 
 let isAnimating = true;
 let showGrid = true;
 let showFieldPoints = true;
+let showScalarBackground = true;
 let showMetaballs = true;
+let debugMode = false;
 
 let thresholdSlider;
 let gridSlider;
 let ballSlider;
+let speedSlider;
+let strengthSlider;
 
 let thresholdValueLabel;
 let gridValueLabel;
 let ballValueLabel;
+let speedValueLabel;
+let strengthValueLabel;
 
 let showGridCheckbox;
 let showFieldPointsCheckbox;
+let showScalarBackgroundCheckbox;
 let showMetaballsCheckbox;
+let debugModeCheckbox;
 
 let startButton;
 let stopButton;
 let resetButton;
+let randomizeButton;
+let removeButton;
+
+let statusAnimation;
+let statusCells;
+let statusThreshold;
+let statusMetaballs;
+let statusSpeed;
+let statusStrength;
 
 function setup() {
     const canvas = createCanvas(900, 600);
@@ -72,17 +95,22 @@ function setup() {
     setupControls();
     initializeField();
     createInitialMetaballs(Number(ballSlider.value));
+    updateStatusPanel();
 }
 
 function draw() {
     background(15, 23, 42);
 
     for (const metaball of metaballs) {
-        metaball.update(isAnimating);
+        metaball.update(isAnimating, speedMultiplier);
         metaball.bounce(width, height);
     }
 
     computeField();
+
+    if (showScalarBackground) {
+        drawScalarBackground();
+    }
 
     if (showGrid) {
         drawGrid();
@@ -101,24 +129,40 @@ function draw() {
     }
 
     drawSceneLabel();
+    updateStatusPanel();
 }
 
 function setupControls() {
     thresholdSlider = document.getElementById("threshold-slider");
     gridSlider = document.getElementById("grid-slider");
     ballSlider = document.getElementById("ball-slider");
+    speedSlider = document.getElementById("speed-slider");
+    strengthSlider = document.getElementById("strength-slider");
 
     thresholdValueLabel = document.getElementById("threshold-value");
     gridValueLabel = document.getElementById("grid-value");
     ballValueLabel = document.getElementById("ball-value");
+    speedValueLabel = document.getElementById("speed-value");
+    strengthValueLabel = document.getElementById("strength-value");
 
     showGridCheckbox = document.getElementById("show-grid");
     showFieldPointsCheckbox = document.getElementById("show-field-points");
+    showScalarBackgroundCheckbox = document.getElementById("show-scalar-background");
     showMetaballsCheckbox = document.getElementById("show-metaballs");
+    debugModeCheckbox = document.getElementById("debug-mode");
 
     startButton = document.getElementById("start-button");
     stopButton = document.getElementById("stop-button");
     resetButton = document.getElementById("reset-button");
+    randomizeButton = document.getElementById("randomize-button");
+    removeButton = document.getElementById("remove-button");
+
+    statusAnimation = document.getElementById("status-animation");
+    statusCells = document.getElementById("status-cells");
+    statusThreshold = document.getElementById("status-threshold");
+    statusMetaballs = document.getElementById("status-metaballs");
+    statusSpeed = document.getElementById("status-speed");
+    statusStrength = document.getElementById("status-strength");
 
     thresholdSlider.addEventListener("input", () => {
         threshold = Number(thresholdSlider.value);
@@ -137,6 +181,16 @@ function setupControls() {
         createInitialMetaballs(ballCount);
     });
 
+    speedSlider.addEventListener("input", () => {
+        speedMultiplier = Number(speedSlider.value);
+        speedValueLabel.textContent = speedMultiplier.toFixed(1);
+    });
+
+    strengthSlider.addEventListener("input", () => {
+        strengthMultiplier = Number(strengthSlider.value);
+        strengthValueLabel.textContent = strengthMultiplier.toFixed(1);
+    });
+
     showGridCheckbox.addEventListener("change", () => {
         showGrid = showGridCheckbox.checked;
     });
@@ -145,8 +199,25 @@ function setupControls() {
         showFieldPoints = showFieldPointsCheckbox.checked;
     });
 
+    showScalarBackgroundCheckbox.addEventListener("change", () => {
+        showScalarBackground = showScalarBackgroundCheckbox.checked;
+    });
+
     showMetaballsCheckbox.addEventListener("change", () => {
         showMetaballs = showMetaballsCheckbox.checked;
+    });
+
+    debugModeCheckbox.addEventListener("change", () => {
+        debugMode = debugModeCheckbox.checked;
+
+        if (debugMode) {
+            showGrid = true;
+            showFieldPoints = true;
+            showScalarBackground = true;
+            showGridCheckbox.checked = true;
+            showFieldPointsCheckbox.checked = true;
+            showScalarBackgroundCheckbox.checked = true;
+        }
     });
 
     startButton.addEventListener("click", () => {
@@ -160,15 +231,46 @@ function setupControls() {
     resetButton.addEventListener("click", () => {
         threshold = 2.0;
         gridSize = 20;
+        speedMultiplier = 1.0;
+        strengthMultiplier = 1.0;
+        isAnimating = true;
+        debugMode = false;
 
         thresholdSlider.value = threshold;
         gridSlider.value = gridSize;
+        speedSlider.value = speedMultiplier;
+        strengthSlider.value = strengthMultiplier;
+
         thresholdValueLabel.textContent = threshold.toFixed(1);
         gridValueLabel.textContent = gridSize;
+        speedValueLabel.textContent = speedMultiplier.toFixed(1);
+        strengthValueLabel.textContent = strengthMultiplier.toFixed(1);
+
+        showGrid = true;
+        showFieldPoints = true;
+        showScalarBackground = true;
+        showMetaballs = true;
+
+        showGridCheckbox.checked = true;
+        showFieldPointsCheckbox.checked = true;
+        showScalarBackgroundCheckbox.checked = true;
+        showMetaballsCheckbox.checked = true;
+        debugModeCheckbox.checked = false;
 
         createInitialMetaballs(Number(ballSlider.value));
         initializeField();
-        isAnimating = true;
+    });
+
+    randomizeButton.addEventListener("click", () => {
+        createInitialMetaballs(Number(ballSlider.value));
+    });
+
+    removeButton.addEventListener("click", () => {
+        if (metaballs.length > 1) {
+            metaballs.pop();
+            ballSlider.value = metaballs.length;
+            ballValueLabel.textContent = metaballs.length;
+        }
     });
 }
 
@@ -186,15 +288,19 @@ function createInitialMetaballs(count) {
     metaballs = [];
 
     for (let i = 0; i < count; i++) {
-        const radius = random(25, 45);
-        const x = random(radius, width - radius);
-        const y = random(radius, height - radius);
-        const vx = random(-2.2, 2.2);
-        const vy = random(-2.2, 2.2);
-        const strength = random(9000, 17000);
-
-        metaballs.push(new Metaball(x, y, vx, vy, strength, radius));
+        metaballs.push(createRandomMetaball());
     }
+}
+
+function createRandomMetaball(x = null, y = null) {
+    const radius = random(25, 45);
+    const safeX = x ?? random(radius, width - radius);
+    const safeY = y ?? random(radius, height - radius);
+    const vx = random(-2.2, 2.2);
+    const vy = random(-2.2, 2.2);
+    const strength = random(9000, 17000);
+
+    return new Metaball(safeX, safeY, vx, vy, strength, radius);
 }
 
 function computeField() {
@@ -215,14 +321,36 @@ function fieldValueAt(x, y) {
         const dx = x - metaball.x;
         const dy = y - metaball.y;
         const distanceSquared = dx * dx + dy * dy;
-        sum += metaball.strength / (distanceSquared + epsilon);
+        sum += metaball.getStrength() / (distanceSquared + epsilon);
     }
 
     return sum;
 }
 
+function drawScalarBackground() {
+    noStroke();
+
+    for (let i = 0; i < cols - 1; i++) {
+        for (let j = 0; j < rows - 1; j++) {
+            const x = i * gridSize;
+            const y = j * gridSize;
+            const value = field[i][j];
+
+            const intensity = constrain(map(value, 0, threshold * 2.2, 0, 1), 0, 1);
+
+            const r = lerp(15, 40, intensity);
+            const g = lerp(23, 180, intensity);
+            const b = lerp(42, 160, intensity);
+            const alpha = lerp(20, 170, intensity);
+
+            fill(r, g, b, alpha);
+            rect(x, y, gridSize, gridSize);
+        }
+    }
+}
+
 function drawGrid() {
-    stroke(51, 65, 85);
+    stroke(51, 65, 85, 120);
     strokeWeight(1);
 
     for (let x = 0; x <= width; x += gridSize) {
@@ -243,15 +371,15 @@ function drawFieldPoints() {
             const y = j * gridSize;
             const value = field[i][j];
 
-            const intensity = constrain(map(value, 0, 2.5, 0, 255), 0, 255);
-            fill(intensity, intensity, intensity, 120);
-            circle(x, y, 5);
+            const intensity = constrain(map(value, 0, threshold * 1.8, 0, 255), 0, 255);
+            fill(intensity, intensity, intensity, 110);
+            circle(x, y, 4);
         }
     }
 }
 
 function drawIsoLines() {
-    stroke(34, 197, 94);
+    stroke(74, 222, 128);
     strokeWeight(3);
     noFill();
 
@@ -358,10 +486,27 @@ function drawSegment(p1, p2) {
     line(p1.x, p1.y, p2.x, p2.y);
 }
 
+function updateStatusPanel() {
+    statusAnimation.textContent = isAnimating ? "running" : "stopped";
+    statusCells.textContent = `${cols - 1} x ${rows - 1}`;
+    statusThreshold.textContent = threshold.toFixed(1);
+    statusMetaballs.textContent = metaballs.length;
+    statusSpeed.textContent = speedMultiplier.toFixed(1);
+    statusStrength.textContent = strengthMultiplier.toFixed(1);
+}
+
 function drawSceneLabel() {
     noStroke();
     fill(226, 232, 240);
     textAlign(LEFT, TOP);
     textSize(18);
-    text("Etap 5: interaktywny panel sterowania", 20, 20);
+    text("Etap 7: rozszerzona interakcja i kontrola dynamiki", 20, 20);
+}
+
+function mousePressed() {
+    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+        metaballs.push(createRandomMetaball(mouseX, mouseY));
+        ballSlider.value = metaballs.length;
+        ballValueLabel.textContent = metaballs.length;
+    }
 }
