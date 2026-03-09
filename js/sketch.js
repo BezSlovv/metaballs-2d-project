@@ -45,7 +45,6 @@ let statusSpeed;
 let statusStrength;
 
 let canvasInstance;
-let resizeObserver;
 
 function setup() {
     pixelDensity(1);
@@ -57,10 +56,7 @@ function setup() {
     initializeField();
     createInitialMetaballs(APP_CONFIG.defaultBallCount);
     applyDefaultView();
-    updateResponsiveCanvasSize();
     updateStatusPanel();
-
-    setupCanvasResizeObserver();
 }
 
 function draw() {
@@ -124,39 +120,6 @@ function addMetaball(x = null, y = null) {
 
     metaballs.push(createRandomMetaball(x, y));
     syncBallControls();
-}
-
-function updateResponsiveCanvasSize() {
-    const container = document.getElementById("canvas-container");
-    if (!container || !canvasInstance) {
-        return;
-    }
-
-    const containerWidth = container.clientWidth;
-    const fallbackWidth = APP_CONFIG.canvasWidth;
-    const displayWidth = Math.max(280, Math.min(containerWidth || fallbackWidth, APP_CONFIG.canvasWidth));
-    const displayHeight = Math.round(displayWidth * APP_CONFIG.canvasHeight / APP_CONFIG.canvasWidth);
-
-    container.style.height = `${displayHeight}px`;
-    canvasInstance.style("width", `${displayWidth}px`);
-    canvasInstance.style("height", `${displayHeight}px`);
-}
-
-function setupCanvasResizeObserver() {
-    const container = document.getElementById("canvas-container");
-    if (!container) {
-        return;
-    }
-
-    resizeObserver = new ResizeObserver(() => {
-        updateResponsiveCanvasSize();
-    });
-
-    resizeObserver.observe(container);
-}
-
-function windowResized() {
-    updateResponsiveCanvasSize();
 }
 
 function mousePressed(event) {
